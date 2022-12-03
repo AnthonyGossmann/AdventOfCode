@@ -9,15 +9,15 @@ import numpy as np
 # Class Puzzle2
 ############################################################
 class Puzzle2:
-    def __init__(self, filename_):
+    def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
     
-    def getResult1(self):
+    def getResult1(self) -> int:
         return self.result1
 
-    def getResult2(self):
+    def getResult2(self) -> int:
         return self.result2
 
     def run(self):

@@ -8,25 +8,25 @@ import re
 # Class Puzzle5
 ############################################################
 class Puzzle5:
-    def __init__(self, filename_):
+    def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
     
-    def getResult1(self):
+    def getResult1(self) -> int:
         return self.result1
 
-    def getResult2(self):
+    def getResult2(self) -> int:
         return self.result2
     
-    def checkPart2Cond1(self, word) -> bool:
+    def checkPart2Cond1(self, word: str) -> bool:
         for i in range(len(word) - 3):
             for j in range(i+2, len(word) - 1):
                 if ((word[i] == word[j]) and (word[i+1] == word[j+1])):
                     return True
         return False
     
-    def checkkPart2Cond2(self, word) -> bool:
+    def checkkPart2Cond2(self, word: str) -> bool:
         for i in range(len(word) - 2):
             if (word[i] == word[i+2]):
                 return True

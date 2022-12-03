@@ -8,16 +8,16 @@ import numpy as np
 # Class Puzzle6
 ############################################################
 class Puzzle6:
-    def __init__(self, filename_):
+    def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
         self.lights = np.zeros((1000, 1000))
     
-    def getResult1(self):
+    def getResult1(self) -> int:
         return self.result1
 
-    def getResult2(self):
+    def getResult2(self) -> int:
         return self.result2
     
 

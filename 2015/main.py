@@ -2,9 +2,9 @@
 # Configuration
 ############################################################
 # Puzzle Number
-PUZZLE = 7
+PUZZLE = 9
 # Use example input
-USE_EXAMPLE = 0
+USE_EXAMPLE = 1
 
 ############################################################
 # Import
