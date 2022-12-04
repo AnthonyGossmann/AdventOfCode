@@ -19,5 +19,18 @@ class Puzzle12:
         return self.result2
 
     def run(self):
-    
+        text = readFile(self.filename)        
+
+        # Part 1
+        tokens = apply(int, re.findall("-?\d+", text))        
+        self.result1 = sum(tokens)
+        
+        # Part 
+        tokens = re.split("[\"]", text)
+        
+        # for i in range(len(tokens)):
+        #     if "red" in tokens[i]:
+                
+        
+        
         return            

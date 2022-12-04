@@ -3,27 +3,7 @@
 ############################################################
 from Utils import *
 from typing import List
-import string
-import numpy as np
-import itertools as it
-import math
-
-############################################################
-# Static Methods
-############################################################
-def perm(k: int):
-    f_k = math.factorial(k)
-    A = np.empty((f_k, k))
-    for i,perm in enumerate(it.permutations(range(k))):
-        A[i,:] = perm
-    return A
-
-def searchData(data_, from_, to_):
-    for i in range(0, len(data_) - 2, 3):
-        print(i)
-        if ((data_[i] == from_) and (data_[i+1] == to_)):
-            return data_[i+2]
-    return -1
+from itertools import permutations
 
 ############################################################
 # Class Puzzle9
@@ -41,26 +21,27 @@ class Puzzle9:
         return self.result2
 
     def run(self):
-        data = readSplit(self.filename, "to|[ =\n]")
+        lines = readLines(self.filename)
         
         cities = []
-        for i in range(len(data)):
-            if not re.search("^[0-9]+$", data[i]):
-                if data[i] not in cities:
-                    cities.append(data[i])
-                idx = cities.index(data[i])
-                data[i] = data[i].replace(data[i], str(idx))
-            data[i] = int(data[i])
-        
-        P = perm(len(cities))
-
-        dist = []
-        for i in range(0, len(P)):
-            for j in range(0, len(P[0]) - 1):
-                f = int(P[i][j])
-                t = int(P[i][j+1])
-                dist += searchData(data, f, t)
-                
-        self.result1 = min(dist)
+        data = {}
+        for line in lines:
+            found = re.fullmatch("(.+) to (.+) = (\d+)", line)
+            if (found.group(1) not in cities):
+                cities.append(found.group(1))
+            if (found.group(2) not in cities):
+                cities.append(found.group(2))
+            data[found.group(1) + "_" + found.group(2)] = int(found.group(3))
+            data[found.group(2) + "_" + found.group(1)] = int(found.group(3))
     
+        dist = []
+        for path in permutations(cities):
+            d = 0
+            for i in range(0, len(path) - 1):
+                d += data[path[i] + "_" + path[i+1]]
+            dist.append(d)
+            
+        self.result1 = min(dist)
+        self.result2 = max(dist)
+            
         return            
