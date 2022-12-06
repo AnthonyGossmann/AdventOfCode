@@ -6,47 +6,52 @@ from typing import List
 from itertools import product
 
 ############################################################
+# Static Methods
+############################################################
+def buildKey(x_: int, y_: int) -> str:
+    return '(' + str(x_) + ',' + str(y_) + ')'
+
+############################################################
 # Class Light
 ############################################################
 class Light:
-    def __init__(self, x_: int, y_: int, state_: bool):
-        self.key = str(x_) + "," + str(y_)
+    def __init__(self, x_: int, y_: int, state_: bool, gridSize_: int):
+        self.key = buildKey(x_, y_)
         self.x = x_
         self.y = y_
         self.state = state_
-        self.neighbour = self.getNeighbours()
+        self.neighbour = self.getNeighbours(gridSize_)
         
-    def getNeighbours(self) -> List:
+    def getNeighbours(self, gridSize_: int) -> List:
         ngh = []
         x = [self.x - 1, self.x, self.x + 1]
         y = [self.y - 1, self.y, self.y + 1]
         
-        x = [x[i] for i in range(len(x)) if ((x[i] != -1) and (x[i] != 100))]
-        y = [y[i] for i in range(len(y)) if ((y[i] != -1) and (y[i] != 100))]
+        x = [x[i] for i in range(len(x)) if ((x[i] != -1) and (x[i] != gridSize_))]
+        y = [y[i] for i in range(len(y)) if ((y[i] != -1) and (y[i] != gridSize_))]
 
         for i,j in product(x,y):
             if ((i != self.x) or (j != self.y)):
-                ngh.append(str(i) + "," + str(j))
+                ngh.append(buildKey(i, j))
         
         return ngh
     
-    def getLight(self, lights_, key_):
-        if (key_ in lights_.keys()):
-            return lights_[key_]
-        raise Exception("Point not found (" + key_ + ")")
-    
-    def updateState(self, lights_):
+    def updateState(self, lights_: List) -> bool: 
         ctr = 0
         for ngh in self.neighbour:
-            if (self.getLight(lights_, ngh).state):
+            if (lights_[ngh].state):
                 ctr += 1
+                
+        state = self.state
         
-        if (self.state and (ctr != 2) and (ctr != 3)):
-            self.state = False
-        elif (not self.state and (ctr == 3)):
-            self.state = True
+        if (self.state):
+            if ((ctr != 2) and (ctr != 3)):
+                state = False
+        elif not self.state:
+            if (ctr == 3):
+                state = True
             
-        return self
+        return state
                 
 ############################################################
 # Class Puzzle18
@@ -56,7 +61,6 @@ class Puzzle18:
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
-        self.lights = {}
     
     def getResult1(self) -> int:
         return self.result1
@@ -64,29 +68,52 @@ class Puzzle18:
     def getResult2(self) -> int:
         return self.result2
     
-    def run(self):
-        lines = readLines(self.filename)
-        
-        for i in range(len(lines)):
-            for j in range(len(lines[i])):
-                key = str(i) + "," + str(j)
-                if (lines[i][j] == '#'):
-                    self.lights[key] = Light(i, j, True)
+    def loadLights(self, lines_: List[str], gridSize_: int) -> List:
+        lights = {}
+        for i in range(gridSize_):
+            for j in range(gridSize_):
+                key = buildKey(i, j)
+                if (lines_[i][j] == '#'):
+                    lights[key] = Light(i, j, True, gridSize_)
                 else:
-                    self.lights[key] = Light(i, j, False)
+                    lights[key] = Light(i, j, False, gridSize_)
+        return lights
+    
+    def process(self, lights_: List, gridSize_: int, step_: int, stuck_: bool = False) -> int:
+        count = 0
+        states = {}
+        results = lights_.copy()
+        for i in range(step_):
+            for light in results.values():
+                states[light.key] = light.updateState(results)
+            for key in states.keys():
+                if (stuck_ and ((key == buildKey(0,0)) or (key == buildKey(0,gridSize_-1)) or (key == buildKey(gridSize_-1,0)) or (key == buildKey(gridSize_-1,gridSize_-1)))):
+                    continue
+                results[key].state = states[key]
+                
+        for light in results.values():
+            if light.state:
+                count += 1
+                
+        return count
+            
+    
+    def run(self):
+        step = 100
+        
+        lines = readLines(self.filename)
+        gridSize = len(lines)
 
         # Part 1
-        ltEnd = self.lights.copy()
-        for i in range(100):
-            print(i)
-            ltStart = ltEnd.copy()
-            ltEnd.clear()
-            
-            for light in ltStart.values():
-                ltEnd[light.key] = light.updateState(ltStart)
-        
-        for light in ltEnd.values():
-            if light.state:
-                self.result1 += 1
+        lights = self.loadLights(lines, gridSize)
+        self.result1 = self.process(lights, gridSize, step)
+                
+        # Part 2
+        lights = self.loadLights(lines, gridSize)
+        lights[buildKey(0,0)].state = True
+        lights[buildKey(0,gridSize-1)].state = True
+        lights[buildKey(gridSize-1,0)].state = True
+        lights[buildKey(gridSize-1,gridSize-1)].state = True
+        self.result2 = self.process(lights, gridSize, step, True)
     
         return            
