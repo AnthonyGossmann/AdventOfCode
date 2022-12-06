@@ -29,6 +29,14 @@ def getWire(wires_: List, name_: str) -> int:
             return i
     return -1
 
+def update(wires_: List):
+    completed = False
+    while not completed:
+        completed = True
+        for wire in wires_:
+            wire.update(wires_)
+            completed &= wire.isUpdated()
+
 ############################################################
 # Class Wire
 ############################################################
@@ -146,13 +154,7 @@ class Puzzle7:
             wires[idx].connect(tokens, wires)
         
         # Part 1
-        completed = False
-        while not completed:
-            completed = True
-            for wire in wires:
-                wire.update(wires)
-                completed &= wire.isUpdated()
-                
+        update(wires)     
         self.result1 = wires[getWire(wires, "a")].getValue()
         
         # Part 2
@@ -160,13 +162,7 @@ class Puzzle7:
         for wire in wires:
             wire.reset()
             
-        completed = False
-        while not completed:
-            completed = True
-            for wire in wires:
-                wire.update(wires)
-                completed &= wire.isUpdated()
-                
+        update(wires)     
         self.result2 = wires[getWire(wires, "a")].getValue()
         
         return            

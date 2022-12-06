@@ -3,7 +3,7 @@
 ############################################################
 from Utils import *
 import re
-import numpy as np
+import math
 
 ############################################################
 # Class Puzzle2
@@ -21,12 +21,15 @@ class Puzzle2:
         return self.result2
 
     def run(self):
-        data = np.array(apply(int, readSplit(self.filename, "[x\n]")))
-        data = np.reshape(data, ((int)(len(data) / 3), 3))
-        data.sort()
-
-        for i in range(len(data)):
-            self.result1 += 3 * data[i, 0] * data[i, 1] + 2 * data[i, 1] * data[i, 2] + 2 * data[i, 0] * data[i, 2]
-            self.result2 += 2 * (data[i, 0] + data[i, 1]) + data[i, 0] * data[i, 1] * data[i, 2]
+        lines = readLines(self.filename)
+        
+        boxes = []
+        for line in lines:
+            found = re.fullmatch("(.+)x(.+)x(.+)", line)
+            box = [int(found.group(i)) for i in range(1,4)]
+            box.sort()
+            
+            self.result1 += 3 * box[0] * box[1] + 2 * box[1] * box[2] + 2 * box[0] * box[2]
+            self.result2 += 2 * (box[0] + box[1]) + math.prod(box)
 
         return            
