@@ -2,36 +2,21 @@
 # Import
 ############################################################
 from Utils import *
-from typing import List
+import typing
+from typing import Dict
+from dataclasses import dataclass
 
-############################################################
-# Static Methods
-############################################################
-def buildKey(name_: str, parent_: str) -> str:
-    if (name_ == "/"):
-        return None
-    elif (parent_ == "/"):
-        return parent_ + name_
-    else:
-        return parent_ + "/" + name_
+Item = typing.NewType("Item", None)
     
 ############################################################
 # Class Item
 ############################################################
+@dataclass()
 class Item:
-    def __init__(self, name_: str, parent_ = None, isDir_: bool = True, size_: int = 0):
-        self.name = name_
-        self.parent = parent_
-        self.isDir = isDir_
-        self.size = size_
-        self.children = []
-        
-        if (name_ == "/"):
-            self.key = name_
-        elif (parent_ == "/"):
-            self.key = parent_ + name_
-        else:
-            self.key = parent_ + "/" + name_
+    parent: Item
+    children: Dict[str, Item]
+    size: int
+    isDir: bool
         
 ############################################################
 # Class Puzzle7
@@ -41,7 +26,6 @@ class Puzzle7:
         self.filename = filename_
         self.result1 = 0
         self.result2 = 1E9
-        self.items = {}
     
     def getResult1(self) -> int:
         return self.result1
@@ -49,75 +33,62 @@ class Puzzle7:
     def getResult2(self) -> int:
         return self.result2
     
-    def getTargetDirectory(self, name_: str, current_: str, currentParent_: str):
-        if (name_ == ".."):
-            if (current_ != "/"):
-                return self.items[currentParent_]
-        elif (name_ == "/"):
-            return self.items["/"]
-        else:
-            return self.items[buildKey(name_, current_)]
-    
-    def loadItems(self, lines_: List[str]):
-        item = Item("/", None, True)
-        self.items[item.key] = item
+    def loadItems(self, lines_: List[str]) -> Item:
+        root = Item(None, {}, 0, True)
         
-        current = self.items["/"]
+        current = root
         for line in lines_:
             if line.startswith("$ cd"):
-                # cd
-                token = line.replace("$ cd ", "")
-                current = self.getTargetDirectory(token, current.key, current.parent)
+                name = line.replace("$ cd ", "")
+                if (name == "/"):
+                    current = root
+                elif (name == ".."):
+                    if (current != root):
+                        current = current.parent
+                else:
+                    current = current.children[name]
             elif line.startswith("$ ls"):
-                # ls
                 continue
             elif line.startswith("dir"):
-                # Dir
-                token = line.replace("dir ", "")
-                item = Item(token, current.key, True)
-                if (item.key not in self.items.keys()):
-                    self.items[item.key] = item
-                current.children.append(item.key)
+                name = line.replace("dir ", "")
+                current.children[name] = Item(current, {}, 0, True)
             else:
-                # File
-                tokens = re.split(" ", line)
-                item = Item(tokens[1], current.key, False, int(tokens[0]))
-                if (item.key not in self.items.keys()):
-                    self.items[item.key] = item
-                current.children.append(item.key)
-                
-                # Update parent size
+                [size, name] = re.split(" ", line)
+                current.children[name] = Item(current, {}, False, int(size))
+      
                 it = current
                 while True:
-                    it.size += self.items[item.key].size
+                    it.size += int(size)
                     if (it.parent == None):
                         break
-                    it = self.items[it.parent]
+                    it = it.parent
+                    
+        return root
 
+    def getDirs(self, root_: Item) -> List[Item]:
+        items = []
+        for item in root_.children.values():
+            if item.isDir:
+                items.append(item)
+                items += self.getDirs(item)
+        return items
+                
+                
     def run(self):
         lines = readLines(self.filename)
-        self.loadItems(lines)
+        root = self.loadItems(lines)
             
         # Part 1
-        for item in self.items.values():
-            if (item.key == "/"):
-                continue
-            if (item.isDir and (item.size <= 100000)):
+        items = self.getDirs(root)
+        for item in items:
+            if ((item != root) and (item.size <= 100000)):
                 self.result1 += item.size
 
         # Part 2
-        total = 70000000
-        target = 30000000
-        free = total - self.items["/"].size
-        need = target - free
-        
-        for item in self.items.values():
-            if (item.key == "/"):
-                continue
-            if not item.isDir:
-                continue
-            if (item.size >= need):
+        target = 30000000 - (70000000 - root.size)
+        for item in items:
+            if ((item != root) and (item.size >= target)):
                 if (item.size < self.result2):
-                    self.result2 = item.size            
+                    self.result2 = item.size    
     
         return            
