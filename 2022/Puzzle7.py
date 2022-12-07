@@ -54,7 +54,7 @@ class Puzzle7:
                 current.children[name] = Item(current, {}, 0, True)
             else:
                 [size, name] = re.split(" ", line)
-                current.children[name] = Item(current, {}, False, int(size))
+                current.children[name] = Item(current, {}, int(size), False)
       
                 it = current
                 while True:
