@@ -2,127 +2,117 @@
 # Import
 ############################################################
 from Utils import *
+import typing
 from typing import List
+from typing import NewType
+from typing import Dict
+from enum import Enum
+from dataclasses import dataclass
 import re
+
+Wire = typing.NewType("Wire", None)
+
+############################################################
+# Definitions
+############################################################
+class Action(Enum):
+    ASSIGN = 0,
+    AND1 = 1,
+    AND = 2,
+    OR = 3,
+    LSHIFT = 4,
+    RSHIFT = 5,
+    NOT = 6
+    
+Action = Enum("Action", ["ASSIGN", "AND1", "AND", "OR", "LSHIFT", "RSHIFT", "NOT"])
 
 ############################################################
 # Static Methods
 ############################################################
-def getAction(tokens_: [str]) -> str:
+def getAction(tokens_: List[str]) -> Action:
     if (("1" in tokens_) and ("AND" in tokens_)):
-        return "1AND"
+        return Action.AND1
     elif ("AND" in tokens_):
-        return "AND"
+        return Action.AND
     elif ("OR" in tokens_):
-        return "OR"
+        return Action.OR
     elif ("LSHIFT" in tokens_):
-        return "LSHIFT"
+        return Action.LSHIFT
     elif ("RSHIFT" in tokens_):
-        return "RSHIFT"
+        return Action.RSHIFT
     elif ("NOT" in tokens_):
-        return "NOT"
-    return "ASSIGN"
-
-def getWire(wires_: List, name_: str) -> int:
-    for i in range(len(wires_)):
-        if (wires_[i].getName() == name_):
-            return i
-    return -1
-
-def update(wires_: List):
-    completed = False
-    while not completed:
-        completed = True
-        for wire in wires_:
-            wire.update(wires_)
-            completed &= wire.isUpdated()
+        return Action.NOT
+    return Action.ASSIGN
 
 ############################################################
 # Class Wire
 ############################################################
+@dataclass()
 class Wire:
     def __init__(self, name_: str):
-        self.name = name_
-        self.action = ""
-        self.parameter = 0
-        self.updated = False
-        self.value = 0
-        self.inputs = []
-        
-    def getName(self) -> str:
-        return self.name
-    
-    def isUpdated(self) -> bool:
-        return self.updated
-    
-    def getValue(self) -> int:
-        return self.value
-    
-    def setValue(self, value_: int):
-        self.value = value_
-        self.updated = True
+        self.name: str = name_
+        self.action: Action
+        self.parameter: int = 0
+        self.updated: bool = False
+        self.value: int = 0
+        self.inputs: List[Wire] = []
         
     def reset(self):
         if (len(self.inputs) != 0):
             self.value = 0
             self.updated = False
-    
-    def connect(self, tokens_: List[str], wires_: List):
+        
+    def setAction(self, wires_: Dict[str, Wire], tokens_: List[str]):
         self.action = getAction(tokens_)
         
-        if (self.action == "1AND"):
+        if (self.action == Action.AND1):
             self.parameter = 1
-            self.inputs.append(getWire(wires_, tokens_[2]))
-        elif (self.action == "AND"):
-            self.inputs.append(getWire(wires_, tokens_[0]))
-            self.inputs.append(getWire(wires_, tokens_[2]))
-        elif (self.action == "OR"):
-            self.inputs.append(getWire(wires_, tokens_[0]))
-            self.inputs.append(getWire(wires_, tokens_[2]))
-        elif (self.action == "LSHIFT"):
-            self.inputs.append(getWire(wires_, tokens_[0]))
+            self.inputs.append(wires_[tokens_[2]])
+        elif (self.action == Action.AND):
+            self.inputs.append(wires_[tokens_[0]])
+            self.inputs.append(wires_[tokens_[2]])
+        elif (self.action == Action.OR):
+            self.inputs.append(wires_[tokens_[0]])
+            self.inputs.append(wires_[tokens_[2]])
+        elif (self.action == Action.LSHIFT):
+            self.inputs.append(wires_[tokens_[0]])
             self.parameter = int(tokens_[2])
-        elif (self.action == "RSHIFT"):
-            self.inputs.append(getWire(wires_, tokens_[0]))
+        elif (self.action == Action.RSHIFT):
+            self.inputs.append(wires_[tokens_[0]])
             self.parameter = int(tokens_[2])
-        elif (self.action == "NOT"):
-            self.inputs.append(getWire(wires_, tokens_[1]))
+        elif (self.action == Action.NOT):
+            self.inputs.append(wires_[tokens_[1]])
         else:
             try:
                 self.value = int(tokens_[0])
                 self.updated = True
             except:
-                self.inputs.append(getWire(wires_, tokens_[0]))
-        
-    
-    def update(self, wires_):
+                self.inputs.append(wires_[tokens_[0]])
+                
+    def update(self):
         if self.updated:
             return
         
-        inputsUpdated = True
-        for i in self.inputs:
-            inputsUpdated &= wires_[i].isUpdated()
-        if not inputsUpdated:
-            return
+        for wire in self.inputs:
+            if not wire.updated:
+                wire.update()
         
-        if (self.action == "1AND"):
-            self.value = self.parameter & wires_[self.inputs[0]].getValue()
-        elif (self.action == "AND"):
-            self.value = wires_[self.inputs[0]].getValue() & wires_[self.inputs[1]].getValue()
-        elif (self.action == "OR"):
-            self.value = wires_[self.inputs[0]].getValue() | wires_[self.inputs[1]].getValue()
-        elif (self.action == "LSHIFT"):
-            self.value = wires_[self.inputs[0]].getValue() << self.parameter
-        elif (self.action == "RSHIFT"):
-            self.value = wires_[self.inputs[0]].getValue() >> self.parameter
-        elif (self.action == "NOT"):
-            self.value = ~wires_[self.inputs[0]].getValue() & 0xFFFF
+        if (self.action == Action.AND1):
+            self.value = self.parameter & self.inputs[0].value
+        elif (self.action == Action.AND):
+            self.value = self.inputs[0].value & self.inputs[1].value
+        elif (self.action == Action.OR):
+            self.value = self.inputs[0].value | self.inputs[1].value
+        elif (self.action == Action.LSHIFT):
+            self.value = (self.inputs[0].value << self.parameter) & 0xFFFF
+        elif (self.action == Action.RSHIFT):
+            self.value = (self.inputs[0].value >> self.parameter) & 0xFFFF
+        elif (self.action == Action.NOT):
+            self.value = ~self.inputs[0].value & 0xFFFF
         else:
-            self.value = wires_[self.inputs[0]].getValue()
-        
+            self.value = self.inputs[0].value
+            
         self.updated = True
-        
-        return
             
 ############################################################
 # Class Puzzle7
@@ -132,6 +122,7 @@ class Puzzle7:
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
+        self.wires = {}
     
     def getResult1(self) -> int:
         return self.result1
@@ -139,30 +130,32 @@ class Puzzle7:
     def getResult2(self) -> int:
         return self.result2
     
+    def reset(self):
+        for wire in self.wires.values():
+            wire.reset()
+    
     def run(self):
         lines = readLines(self.filename)
         
         # Create all wires
-        wires = []
         for line in lines:
-            wires.append(Wire(re.split(" ", line)[-1]))       
-            
-        # Connect
+            wire = re.split(" ", line)[-1]
+            if wire not in self.wires.keys():
+                self.wires[wire] = Wire(wire)
+
+        # Set actions and links
         for line in lines:
             tokens = list(filter(None, re.split(" ", line)))
-            idx = getWire(wires, tokens[-1])
-            wires[idx].connect(tokens, wires)
-        
+            self.wires[tokens[-1]].setAction(self.wires, tokens)
+            
         # Part 1
-        update(wires)     
-        self.result1 = wires[getWire(wires, "a")].getValue()
+        self.wires["a"].update()
+        self.result1 = self.wires["a"].value
         
         # Part 2
-        wires[getWire(wires, "b")].setValue(self.result1)
-        for wire in wires:
-            wire.reset()
-            
-        update(wires)     
-        self.result2 = wires[getWire(wires, "a")].getValue()
+        self.reset()
+        self.wires["b"].value = self.result1
+        self.wires["a"].update()
+        self.result2 = self.wires["a"].value
         
         return            
