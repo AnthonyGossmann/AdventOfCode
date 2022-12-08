@@ -2,28 +2,49 @@
 # Import
 ############################################################
 from Utils import *
+import typing
 from typing import List
+from typing import NewType
+from dataclasses import dataclass
+import numpy as np
 
 ############################################################
-# Static Methods
+# Class Reindeer
 ############################################################
-def computeDistance(data: List, time: int) -> List[int]:
-    distance = [0 for i in range(len(data))]
+Reindeer = typing.NewType("Reindeer ", None)
+@dataclass()
+class Reindeer:
+    name: str
+    speed: int
+    time: int
+    rest: int
     
-    for i in range(len(data)):
-        tFrame = data[i][1] + data[i][2]
-        nFrame = time // tFrame
-        distance[i] = nFrame * data[i][0] * data[i][1]
+    def __init__(self, name_: str, speed_: int, time_: int, rest_: int):
+        self.name = name_
+        self.speed = speed_
+        self.time = time_
+        self.rest = rest_
+    
+    def distance(self, time_: int) -> int:
+        distance = 0
         
-        tRemain = time - nFrame * tFrame
-        distance[i] += data[i][0] * min(tRemain, data[i][1])
-    
-    return distance
+        tFrame = self.time + self.rest
+        nFrame = time_ // tFrame
+        distance = nFrame * self.speed * self.time
+        
+        tRemain = time_ - nFrame * tFrame
+        distance += self.speed * min(tRemain, self.time)
+        
+        return distance
 
 ############################################################
 # Class Puzzle14
 ############################################################
 class Puzzle14:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -36,27 +57,26 @@ class Puzzle14:
         return self.result2
 
     def run(self):
-        time = 2503
         lines = readLines(self.filename)
-        
-        data = []
+
+        reindeers = dict()
         for line in lines:
             found = re.fullmatch("(.+) can fly (.+) km/s for (.+) seconds, but then must rest for (.+) seconds.", line)
-            data.append([int(found.group(2)), int(found.group(3)), int(found.group(4))])
-
+            reindeers[found.group(1)] = Reindeer(found.group(1), int(found.group(2)), int(found.group(3)), int(found.group(4)))
+            
         # Part 1
-        distance = computeDistance(data, time)
-        self.result1 = max(distance)
-        
+        for r in reindeers.values():
+            self.result1 = max(self.result1, r.distance(2503))
+            
         # Part 2
-        points = [0 for i in range(len(data))]
-        for t in range(1, time):
-            distance = computeDistance(data, t)
-
-            for i in range(len(data)):
-                if (distance[i] == max(distance)):
-                    points[i] += 1
-                    
-        self.result2 = max(points)
+        points = dict.fromkeys(reindeers.keys(), 0)
+        for t in range(1, 2503):
+            distance = dict.fromkeys(reindeers.keys(), 0)
+            for reindeer in reindeers.values():
+                distance[reindeer.name] = reindeer.distance(t)
+            for reindeer in distance.keys():
+                if (distance[reindeer] == max(distance.values())):
+                    points[reindeer] += 1
+        self.result2 = max(points.values())
         
         return            

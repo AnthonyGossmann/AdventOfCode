@@ -2,7 +2,7 @@
 # Configuration
 ############################################################
 # Puzzle Number
-PUZZLE = 20
+PUZZLE = 22
 # Use example input
 USE_EXAMPLE = 0
 

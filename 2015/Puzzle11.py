@@ -50,10 +50,14 @@ def nextPwd(pwd_: str) -> str:
 # Class Puzzle11
 ############################################################
 class Puzzle11:
+    filename: str
+    result1: str
+    result2: str
+    
     def __init__(self, filename_: str):
         self.filename = filename_
-        self.result1 = 0
-        self.result2 = 0
+        self.result1 = ""
+        self.result2 = ""
     
     def getResult1(self) -> str:
         return self.result1
@@ -66,7 +70,7 @@ class Puzzle11:
        
         # Part 1
         result = text
-        while (True):
+        while True:
             result = nextPwd(result)
             if checkPwd(result):
                 break
@@ -74,7 +78,7 @@ class Puzzle11:
         self.result1 = result
         
         # Part 2
-        while (True):
+        while True:
             result = nextPwd(result)
             if checkPwd(result):
                 break

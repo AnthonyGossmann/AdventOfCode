@@ -8,6 +8,10 @@ import hashlib
 # Class Puzzle4
 ############################################################
 class Puzzle4:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0

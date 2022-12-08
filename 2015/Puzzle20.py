@@ -7,19 +7,13 @@ from sympy.ntheory import factorint
 import numpy as np
 
 ############################################################
-# Static Methods
-############################################################
-def findFactors(num_: int) -> List[int]:
-    result = []
-    for i in range(1, num_ + 1):
-        if ((num_ % i) == 0):
-            result.append(i)
-    return result   
-
-############################################################
 # Class Puzzle20
 ############################################################
 class Puzzle20:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -34,18 +28,16 @@ class Puzzle20:
     def run(self):
         target = int(readFile(self.filename))
         
-        print(factorint(target))
-        
         # Part 1
         while True:
             self.result1 += 1
-            factorisation = factorint(self.result1)
-            factors = np.ones(1, dtype=int)
+            factors = factorint(self.result1)
+            results = np.ones(1, dtype=int)
             
-            for prime, power in factorisation.items():
-                factors = np.outer(np.array([prime ** k for k in range(power + 1)]), factors).ravel()
+            for prime, power in factors.items():
+                results = np.outer(np.array([prime ** k for k in range(power + 1)]), results).ravel()
             
-            if (sum(factors) * 10 >= target):
+            if (sum(results) * 10 >= target):
                 break
         
         # Part 2

@@ -2,65 +2,95 @@
 # Import
 ############################################################
 from Utils import *
-from typing import List
 from itertools import product
+import typing
+from typing import List
+from typing import Dict
+from typing import NewType
+from dataclasses import dataclass
+
+Point = typing.NewType("Point", None)
+Light = typing.NewType("Light", None)
 
 ############################################################
-# Static Methods
+# Class Point
 ############################################################
-def buildKey(x_: int, y_: int) -> str:
-    return '(' + str(x_) + ',' + str(y_) + ')'
+@dataclass()
+class Point:
+    x: int
+    y: int
+    
+    def __init__(self, x_: int, y_: int):
+        self.x = x_
+        self.y = y_
+    
+    def __hash__(self):
+        return hash((self.x, self.y))
 
+    def __eq__(self, other_):
+        return (self.x, self.y) == (other_.x, other_.y)
+
+    def __ne__(self, other_):
+        return not(self == other_)
+    
 ############################################################
 # Class Light
 ############################################################
+@dataclass()
 class Light:
-    def __init__(self, x_: int, y_: int, state_: bool, gridSize_: int):
-        self.key = buildKey(x_, y_)
-        self.x = x_
-        self.y = y_
-        self.state = state_
-        self.neighbour = self.getNeighbours(gridSize_)
-        
-    def getNeighbours(self, gridSize_: int) -> List:
-        ngh = []
-        x = [self.x - 1, self.x, self.x + 1]
-        y = [self.y - 1, self.y, self.y + 1]
-        
-        x = [x[i] for i in range(len(x)) if ((x[i] != -1) and (x[i] != gridSize_))]
-        y = [y[i] for i in range(len(y)) if ((y[i] != -1) and (y[i] != gridSize_))]
-
-        for i,j in product(x,y):
-            if ((i != self.x) or (j != self.y)):
-                ngh.append(buildKey(i, j))
-        
-        return ngh
+    point: Point
+    state: bool
+    size: int
+    neighbours: List[Point]
     
-    def updateState(self, lights_: List) -> bool: 
-        ctr = 0
-        for ngh in self.neighbour:
-            if (lights_[ngh].state):
-                ctr += 1
-                
-        state = self.state
+    def __init__(self, point_: Point, state_: bool, size_: int):
+        self.point = point_
+        self.state = state_
+        self.size = size_
+        self.neighbours = []
         
-        if (self.state):
-            if ((ctr != 2) and (ctr != 3)):
+        x = [self.point.x - 1, self.point.x, self.point.x + 1]
+        y = [self.point.y - 1, self.point.y, self.point.y + 1]
+        
+        x = [x[i] for i in range(len(x)) if ((x[i] != -1) and (x[i] != self.size))]
+        y = [y[i] for i in range(len(y)) if ((y[i] != -1) and (y[i] != self.size))]
+        
+        for i,j in product(x,y):
+            if ((i != self.point.x) or (j != self.point.y)):
+                self.neighbours.append(Point(i,j))
+                
+    def update(self, lights_: Dict[Point, Light]) -> bool:
+        count = 0
+        for ngh in self.neighbours:
+            if (lights_[ngh].state):
+                count += 1
+        
+        state = self.state
+        if self.state:
+            if ((count != 2) and (count != 3)):
                 state = False
-        elif not self.state:
-            if (ctr == 3):
+        else:
+            if (count == 3):
                 state = True
-            
-        return state
+                
+        return state    
                 
 ############################################################
 # Class Puzzle18
 ############################################################
 class Puzzle18:
+    filename: str
+    result1: int
+    result2: int
+    lights: Dict[Point,Light]
+    size: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
+        self.lights = {}
+        self.size = 0
     
     def getResult1(self) -> int:
         return self.result1
@@ -68,28 +98,27 @@ class Puzzle18:
     def getResult2(self) -> int:
         return self.result2
     
-    def loadLights(self, lines_: List[str], gridSize_: int) -> List:
-        lights = {}
-        for i in range(gridSize_):
-            for j in range(gridSize_):
-                key = buildKey(i, j)
-                if (lines_[i][j] == '#'):
-                    lights[key] = Light(i, j, True, gridSize_)
-                else:
-                    lights[key] = Light(i, j, False, gridSize_)
+    def loadLights(self, lines_: List[str]) -> Dict[Point, Light]:
+        lights = dict()
+        for i,j in product(range(self.size), range(self.size)):
+            light = Light(Point(i,j), (lines_[i][j] == '#'), self.size)
+            lights[Point(i,j)] = light
+
         return lights
     
-    def process(self, lights_: List, gridSize_: int, step_: int, stuck_: bool = False) -> int:
+    def step(self, step_: int, stuck_: bool = False) -> int:
         count = 0
-        states = {}
-        results = lights_.copy()
+        states = dict()
+        results = self.lights.copy()
+        
         for i in range(step_):
             for light in results.values():
-                states[light.key] = light.updateState(results)
-            for key in states.keys():
-                if (stuck_ and ((key == buildKey(0,0)) or (key == buildKey(0,gridSize_-1)) or (key == buildKey(gridSize_-1,0)) or (key == buildKey(gridSize_-1,gridSize_-1)))):
+                states[light.point] = light.update(results)
+     
+            for point in states.keys():
+                if (stuck_ and ((point == Point(0,0) or (point == Point(0,self.size - 1)) or (point == Point(self.size - 1,0)) or (point == Point(self.size - 1,self.size - 1))))):
                     continue
-                results[key].state = states[key]
+                results[point].state = states[point]
                 
         for light in results.values():
             if light.state:
@@ -97,23 +126,22 @@ class Puzzle18:
                 
         return count
             
-    
     def run(self):
         step = 100
         
         lines = readLines(self.filename)
-        gridSize = len(lines)
-
+        self.size = len(lines)
+        
         # Part 1
-        lights = self.loadLights(lines, gridSize)
-        self.result1 = self.process(lights, gridSize, step)
+        self.lights = self.loadLights(lines)
+        self.result1 = self.step(step)
                 
         # Part 2
-        lights = self.loadLights(lines, gridSize)
-        lights[buildKey(0,0)].state = True
-        lights[buildKey(0,gridSize-1)].state = True
-        lights[buildKey(gridSize-1,0)].state = True
-        lights[buildKey(gridSize-1,gridSize-1)].state = True
-        self.result2 = self.process(lights, gridSize, step, True)
+        self.lights = self.loadLights(lines)
+        self.lights[Point(0,0)].state = True
+        self.lights[Point(0,self.size-1)].state = True
+        self.lights[Point(self.size-1,0)].state = True
+        self.lights[Point(self.size-1,self.size-1)].state = True
+        self.result2 = self.step(step, True)
     
         return            

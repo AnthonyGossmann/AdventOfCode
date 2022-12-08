@@ -24,6 +24,10 @@ def checkP2Cnd2(word: str) -> bool:
 # Class Puzzle5
 ############################################################
 class Puzzle5:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -35,15 +39,12 @@ class Puzzle5:
     def getResult2(self) -> int:
         return self.result2
     
-    
-        
-
     def run(self):
         words = readLines(self.filename)
         
         for word in words:
             b1 = (re.subn("[aeiou]", '', word)[1] > 2)
-            b2 = not (re.search("([a-z])\\1", word) == None)
+            b2 = (re.search("([a-z])\\1", word) != None)
             b3 = re.search("(?:ab|cd|pq|xy)", word) == None
             
             self.result1 += int(b1 and b2 and b3)

@@ -18,6 +18,10 @@ def compute(text_: str) -> str:
 # Class Puzzle10
 ############################################################
 class Puzzle10:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -36,14 +40,12 @@ class Puzzle10:
         data = text
         for _ in range(40):
             data = compute(data)
-    
         self.result1 = len(data)
         
         # Part 2
         data = text
         for _ in range(50):
             data = compute(data)
-    
         self.result2 = len(data)
             
         return            

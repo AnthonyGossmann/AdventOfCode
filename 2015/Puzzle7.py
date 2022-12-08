@@ -10,8 +10,6 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 
-Wire = typing.NewType("Wire", None)
-
 ############################################################
 # Definitions
 ############################################################
@@ -47,15 +45,22 @@ def getAction(tokens_: List[str]) -> Action:
 ############################################################
 # Class Wire
 ############################################################
+Wire = typing.NewType("Wire", None)
 @dataclass()
 class Wire:
+    name: str
+    action: Action
+    parameter: int
+    updated: bool
+    value: int
+    inputs: List[Wire]
+    
     def __init__(self, name_: str):
-        self.name: str = name_
-        self.action: Action
-        self.parameter: int = 0
-        self.updated: bool = False
-        self.value: int = 0
-        self.inputs: List[Wire] = []
+        self.name = name_
+        self.parameter = 0
+        self.updated = False
+        self.value = 0
+        self.inputs = []
         
     def reset(self):
         if (len(self.inputs) != 0):
@@ -118,6 +123,11 @@ class Wire:
 # Class Puzzle7
 ############################################################
 class Puzzle7:
+    filename: str
+    result1: int
+    result2: int
+    wires: Dict[str,Wire]
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0

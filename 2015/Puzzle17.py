@@ -2,12 +2,17 @@
 # Import
 ############################################################
 from Utils import *
-from itertools import permutations
+from itertools import combinations
+from collections import Counter
 
 ############################################################
 # Class Puzzle17
 ############################################################
 class Puzzle17:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -22,25 +27,15 @@ class Puzzle17:
     def run(self):
         containers = apply(int, readLines(self.filename))
         target = 150
-        
+
         # Part 1
-        results = []
-        for i in range(0, 2**(len(containers))):
-            total = 0
-            j = 0
-            cnt = 0
-            while ((j < len(containers)) and (total <= target)):
-                if (i & (1 << j)):
-                    total += containers[j]
-                    cnt += 1
-                j += 1
-            
-            if (total == target):
-                self.result1 += 1
-                results.append(cnt)
-      
+        results = Counter()
+        for i in range(len(containers)):
+            for c in combinations(containers, i):
+                if (sum(c) == target):
+                    self.result1 += 1
+                    results[i] += 1
         # Part 2
-        self.result2 = results.count(min(results))
+        self.result2 = results[min(results)]
                
-      
         return            

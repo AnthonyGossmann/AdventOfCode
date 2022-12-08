@@ -7,6 +7,10 @@ from Utils import *
 # Class Puzzle16
 ############################################################
 class Puzzle16:
+    filename: str
+    result1: int
+    result2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -21,13 +25,12 @@ class Puzzle16:
     def run(self):
         lines = readLines(self.filename)
         
-        data = {}
+        data = dict()
         for line in lines:
             found = re.fullmatch("Sue (.+): (.+): (.+), (.+): (.+), (.+): (.+)", line)
-            data[int(found.group(1))]  = {}
             for i in range(2, 7, 2):
-                data[int(found.group(1))][found.group(i)] = int(found.group(i+1))
-
+                data.setdefault(int(found.group(1)), dict())[found.group(i)] = int(found.group(i+1))
+                
         ticker = {
             "children"   : 3,
             "cats"       : 7,
