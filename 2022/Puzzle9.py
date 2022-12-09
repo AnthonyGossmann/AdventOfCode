@@ -74,10 +74,10 @@ class Puzzle9:
             
         return head_
     
-    def move(self, head_: Point, tail_: Point) -> Point:        
+    def move(self, current_: Point, next_: Point) -> Point:        
         if (tail_ not in self.getNeighbours(head_)):
-            dx = (head_.x - tail_.x)
-            dy = (head_.y - tail_.y)
+            dx = (current_.x - next_.x)
+            dy = (current_.y - next_.y)
             
             if (dx < -1):
                 dx = -1
@@ -89,10 +89,10 @@ class Puzzle9:
             elif (dy > 1):
                 dy = 1
                 
-            tail_.x += dx
-            tail_.y += dy
+            next_.x += dx
+            next_.y += dy
                         
-        return tail_
+        return next_
     
     def move10(self, ropes_: List[Point], cmd_: str) -> List[Point]:
         ropes_[0] = self.moveHead(ropes_[0], cmd_)
