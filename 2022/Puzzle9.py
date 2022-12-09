@@ -74,8 +74,8 @@ class Puzzle9:
             
         return head_
     
-    def move(self, current_: Point, next_: Point) -> Point:        
-        if (tail_ not in self.getNeighbours(head_)):
+    def moveOne(self, current_: Point, next_: Point) -> Point:        
+        if (next_ not in self.getNeighbours(current_)):
             dx = (current_.x - next_.x)
             dy = (current_.y - next_.y)
             
@@ -94,43 +94,35 @@ class Puzzle9:
                         
         return next_
     
-    def move10(self, ropes_: List[Point], cmd_: str) -> List[Point]:
+    def move(self, ropes_: List[Point], cmd_: str) -> List[Point]:
         ropes_[0] = self.moveHead(ropes_[0], cmd_)
         
-        for i in range(1, 10):
-            ropes_[i] = self.move(ropes_[i-1], ropes_[i])          
+        for i in range(1, len(ropes_)):
+            ropes_[i] = self.moveOne(ropes_[i-1], ropes_[i])          
             
         return ropes_
-            
+    
+    def command(self, cmds_: List, length_: int = 2) -> int:
+        points = [Point(0,0)]
+        ropes = [Point(0,0) for i in range(length_)]
+        
+        for cmd in cmds_:
+            for i in range(cmd[1]):
+                ropes = self.move(ropes, cmd[0])
+                if ropes[-1] not in points:
+                    points.append(Point(ropes[-1].x, ropes[-1].y))
+        
+        return len(points)
 
     def run(self):
         lines = readLines(self.filename)
-
-        # Part 1
-        ropes = [Point(0,0), Point(0,0)]
-        points = [Point(0,0)]
         
+        commands = []
         for line in lines:
             tokens = line.split(" ")
-            for i in range(int(tokens[1])):
-                ropes[0] = self.moveHead(ropes[0], tokens[0])
-                ropes[1] = self.move(ropes[0], ropes[1])
-                if ropes[1] not in points:
-                    points.append(Point(ropes[1].x,ropes[1].y))
-            
-        self.result1 = len(points)
-        
-        # Part 2
-        ropes = [Point(0,0) for i in range(10)]
-        points = [Point(0,0)]
-        
-        for line in lines:
-            tokens = line.split(" ")
-            for i in range(int(tokens[1])):
-                ropes = self.move10(ropes, tokens[0])
-                if ropes[-1] not in points:
-                    points.append(Point(ropes[-1].x,ropes[-1].y))
+            commands.append([tokens[0], int(tokens[1])])
 
-        self.result2 = len(points)
+        self.result1 = self.command(commands)
+        self.result2 = self.command(commands, 10)
         
         return            
