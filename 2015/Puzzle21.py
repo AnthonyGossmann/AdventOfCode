@@ -19,33 +19,31 @@ AttackRings = { (25,1), (50,2), (100,3) }
 DefenceRings = { (20,1), (40,2), (80,3) }
 
 ############################################################
-# Class Fighter
+# Class Player
 ############################################################
-Fighter = typing.NewType("Fighter", None)
+Player = typing.NewType("Player", None)
 @dataclass()
-class Fighter:
-    name: str
+class Player:
     health: int
     damage: int
     armor: int
-    startHealth: int
+    currentHealth: int
     
-    def __init__(self, name_: str, health_: int, damage_: int, armor_: int):
-        self.name = name_
+    def __init__(self, health_: int, damage_: int, armor_: int):
         self.health = health_
         self.damage = damage_
         self.armor = armor_
-        self.startHealth = self.health
+        self.currentHealth = self.health
         
     def cure(self):
-        self.health = self.startHealth
+        self.currentHealth = self.health
         
-    def attack(self, opponent_: Fighter) -> bool:
+    def attack(self, opponent_: Player) -> bool:
         return opponent_.defend(self.damage)
     
     def defend(self, damage_: int) -> bool:
-        self.health -= max(damage_ - self.armor, 1)
-        return (self.health <= 0)
+        self.currentHealth -= max(damage_ - self.armor, 1)
+        return (self.currentHealth <= 0)
 
 ############################################################
 # Class Puzzle21
@@ -66,7 +64,7 @@ class Puzzle21:
     def getResult2(self) -> int:
         return self.result2
     
-    def fight(self, player_: Fighter, boss_: Fighter) -> bool:
+    def fight(self, player_: Player, boss_: Player) -> bool:
         while True:
             if player_.attack(boss_):
                 return True
@@ -121,13 +119,13 @@ class Puzzle21:
     def run(self):
         text = re.sub("[ a-zA-z:]", "", readFile(self.filename))
         tokens = text.split('\n')
-        boss = Fighter("Boss", int(tokens[0]), int(tokens[1]), int(tokens[2]))
+        boss = Player(int(tokens[0]), int(tokens[1]), int(tokens[2]))
 
         # Part 1
         costs = []
         for damage,armor in product(range(4, 14), range(11)):
             boss.cure()
-            player = Fighter("Player", 100, damage, armor)
+            player = Player(100, damage, armor)
      
             if (self.fight(player, boss)):
                 costs += self.gearUp(damage, armor) 
@@ -138,7 +136,7 @@ class Puzzle21:
         costs = []
         for damage,armor in product(range(4, 14), range(11)):
             boss.cure()
-            player = Fighter("Player", 100, damage, armor)
+            player = Player(100, damage, armor)
             
             if not self.fight(player, boss):
                 costs += self.gearUp(damage, armor)
