@@ -2,196 +2,117 @@
 # Import
 ############################################################
 from Utils import *
+from itertools import chain, combinations, product
+import copy
 import typing
+from typing import Dict
+from typing import List
 from typing import NewType
 from dataclasses import dataclass
-
-# import copy
-# import typing
-# from typing import Dict
-# from typing import List
-# import re
+import re
 
 ############################################################
-# Class State
+# Class Game
 ############################################################
-State = typing.NewType("State", None)
-@dataclass()
-class State:
+Game = typing.NewType("Game", None)
+@dataclass
+class Game:
     boss_hp: int
-    boss_damage: int
+    boss_dmg: int
     player_hp: int
-    player_armor: int
+    player_arm: int
     player_mana: int
-    poison_timer: int
-    shield_timer: int
-    recharge_timer: int
-    
+    player_cost: int
+    timer_poison: int
+    timer_shield: int
+    timer_recharge: int
+    player_turn: bool
+    hard_rules: bool
+
 ############################################################
 # Spells
 ############################################################
 MAGIC_MISSILE = 53
-def magicMissile(state_: State) -> State:
-    state_.player_mana -= MAGIC_MISSILE
-    state_.boss_hp -= 4
-    return state_
+def magicMissile(game_: Game) -> Game:
+    game_.player_cost += MAGIC_MISSILE
+    game_.player_mana -= MAGIC_MISSILE
+    game_.boss_hp -= 4
+    return game_
 
 DRAIN = 73
-def drain(state_: State) -> State:
-    state_.player_mana -= DRAIN
-    state_.player_hp += 2
-    state_.boss_hp -= 2
-    return state_
+def drain(game_: Game) -> Game:
+    game_.player_cost += DRAIN
+    game_.player_mana -= DRAIN
+    game_.player_hp += 2
+    game_.boss_hp -= 2
+    return game_
 
 SHIELD = 113
-def shield(state_: State) -> State:
-    state_.player_mana -= SHIELD
-    state_.player_armor = 7
-    state_.shield_timer = 6
-    return state_
+def shield(game_: Game) -> Game:
+    game_.player_cost += SHIELD
+    game_.player_mana -= SHIELD
+    game_.player_arm = 7
+    game_.timer_shield = 6
+    return game_
 
 POISON = 173
-def poison(state_: State) -> State:
-    state_.player_mana -= POISON
-    state_.poison_timer = 6
-    return state_
+def poison(game_: Game) -> Game:
+    game_.player_cost += POISON
+    game_.player_mana -= POISON
+    game_.timer_poison = 6
+    return game_
 
 RECHARGE = 229
-def recharge(state_: State) -> State:
-    state_.player_mana -= RECHARGE
-    state_.recharge_timer = 5
-    return state_
+def recharge(game_: Game) -> Game:
+    game_.player_cost += RECHARGE
+    game_.player_mana -= RECHARGE
+    game_.timer_recharge = 5
+    return game_
+
+def isCastValid(game_: Game, cast_: int) -> bool:
+    if (game_.player_mana < cast_):
+        return False
+    
+    if ((cast_ == SHIELD) and (game_.timer_shield != 0)):
+        return False
+    
+    if ((cast_ == POISON) and (game_.timer_poison != 0)):
+        return False
+    
+    if ((cast_ == RECHARGE) and (game_.timer_recharge != 0)):
+        return False
+    
+    return True
+
 
 ############################################################
-# Methods
+# Attack/Effect
 ############################################################
-def applyEffects(state_: State) -> State:
-    if (state_.shield_timer > 0):
-        state_.shield_timer -= 1
-        if (state_.shield_timer == 0):
-            state_.player_armor = 0
-    if (state_.poison_timer > 0):
-        state_.boss_hp -= 3
-        state_.poison_timer -= 1
-    if (state_.recharge_timer > 0):
-        state_.player_mana += 101
-        state_.recharge_timer -= 1
+def applyEffect(game_: Game) -> Game:
+    # Shield
+    if (game_.timer_shield > 0):
+        game_.timer_shield -= 1
+        if (game_.timer_shield == 0):
+            game_.player_arm = 0
+    # Poison
+    if (game_.timer_poison > 0):
+        game_.timer_poison -= 1
+        game_.boss_hp -= 3
+    # Mana
+    if (game_.timer_recharge > 0):
+        game_.timer_recharge -= 1
+        game_.player_mana += 101
         
-    return state_
+    return game_
 
-def bossAttack(state_: State) -> State:
-    state_.player_hp -= max(state_.boss_damage - state_.player_armor, 1)
-    return state_
+def bossAttack(game_: Game) -> Game:
+    game_.player_hp -= max(game_.boss_dmg - game_.player_arm, 1)
+    return game_
 
-def fightRound(state_: State) -> int:
-    if (state_.boss_hp <= 0):
-        return 0
-    elif (state_.player_hp <= 0):
-        return -1
-    
-    # Apply Effects
-    state_ = applyEffects(state_)
-    if (state_.boss_hp <= 0):
-        return 0
-    
-    # Player
-    options = []
-    if (state_.player_mana > MAGIC_MISSILE):
-        state = magicMissile(state_)
-        options.append((fightRound(state), MAGIC_MISSILE)
-    if (state_.player_mana > DRAIN):
-        state = magicMissile(state_)
-        options.append((fightRound(state), MAGIC_MISSILE)
-    if (state_.player_mana > SHIELD):
-        options.append((fightRound(shield(state_)), SHIELD))
-    if (state_.player_mana > MAGIC_MISSILE):
-        options.append((fightRound(magicMissile(state_)), MAGIC_MISSILE))
-    if (state_.player_mana > MAGIC_MISSILE):
-        options.append((fightRound(magicMissile(state_)), MAGIC_MISSILE))
+############################################################
+# Round
+############################################################
 
-# ############################################################
-# # Definitions
-# ############################################################
-# Spells = {
-#     "Magic Missile": {"cost": 53,  "damage": 4, "health": 0, "armor": 0, "mana": 0,   "time": 0},
-#     "Drain"        : {"cost": 73,  "damage": 2, "health": 2, "armor": 0, "mana": 0,   "time": 0},
-#     "Shield"       : {"cost": 113, "damage": 0, "health": 0, "armor": 7, "mana": 0,   "time": 6},
-#     "Poison"       : {"cost": 173, "damage": 3, "health": 0, "armor": 0, "mana": 0,   "time": 6},
-#     "Recharge"     : {"cost": 229, "damage": 0, "health": 0, "armor": 0, "mana": 101, "time": 5}
-# }
-
-# ############################################################
-# # Class Player
-# ############################################################
-# Player = typing.NewType("Player", None)
-# @dataclass()
-# class Player:
-#     wizard: bool
-#     health: int
-#     damage: int
-#     armor: int
-#     mana: int
-#     currentHealth: int
-#     currentMana: int
-#     cost: int
-#     timers: Dict[str,int]
-    
-#     def __init__(self, wizard_: bool, health_: int, damage_: int, armor_: int, mana_: int):
-#         self.wizard = wizard_
-#         self.health = health_
-#         self.damage = damage_
-#         self.armor = armor_
-#         self.mana = mana_
-#         self.cost = 0
-#         self.timers = { "Shield": 0, "Poison": 0, "Recharge": 0}
-        
-    # def alive(self) -> bool:
-    #     return (self.currentHealth > 0)
-            
-    # def canCast(self, spell_: str):   
-    #     result = (self.currentMana >= Spells[spell_]["cost"])
-    #     if (spell_ in self.timers.keys()):
-    #         result &= (self.timers[spell_] == 0)
-    #     return result
-        
-    # def effect(self, opponent_: Player) -> bool:
-    #     # Mana
-    #     if (self.timers["Recharge"] > 0):
-    #         self.currentMana += Spells["Recharge"]["mana"]
-    #         self.timers["Recharge"] -= 1
-            
-    #     # Armor
-    #     if (self.timers["Shield"] > 0):
-    #         self.armor = Spells["Shield"]["armor"]
-    #         self.timers["Shield"] -= 1
-    #         if (self.timers["Shield"] == 0):
-    #             self.armor = 0
-    #     else:
-    #         self.armor = 0
-            
-    #     # Damage
-    #     if (self.timers["Poison"] > 0):
-    #         opponent_.defend(Spells["Poison"]["damage"])
-    #         self.timers["Poison"] -= 1
-        
-    # def attack(self, opponent_: Player, spell_: str = ""):
-    #     if self.wizard:
-    #         self.cost += Spells[spell_]["cost"]
-    #         self.currentMana -= Spells[spell_]["cost"]
-    #         self.currentHealth += Spells[spell_]["health"]
-            
-    #         if (Spells[spell_]["time"] == 0):
-    #             opponent_.defend(Spells[spell_]["damage"])
-    #         else:
-    #             self.timers[spell_] = Spells[spell_]["time"]     
-    #     else:
-    #         opponent_.defend(self.damage)
-            
-    # def defend(self, damage_: int):
-    #     if self.wizard:
-    #         self.currentHealth -= max(damage_ - self.armor, 1)
-    #     else:
-    #         self.currentHealth -= damage_
     
 ############################################################
 # Class Puzzle22
@@ -203,136 +124,77 @@ class Puzzle22:
     
     def __init__(self, filename_):
         self.filename = filename_
-        self.result1 = 0
-        self.result2 = 0
-    
+        self.result1 = 1E9
+        self.result2 = 1E9
+        self.cost = 1E9
+
     def getResult1(self) -> int:
         return self.result1
 
     def getResult2(self) -> int:
         return self.result2
     
-    # def status(self, player_: Player, boss_: Player):
-    #     print("Player has " + str(player_.currentHealth) + " hit points, " + str(player_.armor) + " armor, " + str(player_.currentMana) + " mana")
-    #     print("Boss has " + str(boss_.currentHealth) + " hit points")
+    def fightRound(self, game_: Game) -> int:
+        if (game_.player_cost > self.cost):
+            return -1
         
-    # def test(self):
-    #     #boss = Player(False, 13, 8, 0, 0)
-    #     boss = Player(False, 14, 8, 0, 0)
-    #     player = Player(True, 10, 0, 0, 250)
+        # Check
+        if (game_.boss_hp <= 0):
+            self.cost = min(self.cost, game_.player_cost)
+            return game_.player_cost
+        if (game_.player_hp <= 0):
+            return -1
         
-    #     #spells = ["Poison", "Magic Missile"]
-    #     spells = ["Recharge", "Shield", "Drain", "Poison", "Magic Missile"]
+        # Turn
+        game_.player_turn = not game_.player_turn
         
-    #     for spell in spells:
-    #         self.status(player, boss)
-            
-    #         print("-- Player turn --")
-    #         self.status(player, boss)
-    #         player.effect(boss)
-            
-            
-    #         if not boss.alive():
-    #             print("Player wins")
-    #             break
-            
-    #         if not player.canCast(spell):
-    #             print("Boss wins")
-    #             break
-            
-    #         print("Player casts " + spell)
-    #         player.attack(boss, spell)
-            
-    #         if not boss.alive():
-    #             print("Player wins")
-    #             break
-
-    #         print("-- Boss turn --")
-    #         self.status(player, boss)
-    #         player.effect(boss)
-            
-    #         if not boss.alive():
-    #             print("Player wins")
-    #             break
-            
-    #         print("Boss attacks for " + str(boss.damage) + " damage")
-    #         boss.attack(player)
-
-    #         if not player.alive():
-    #             print("Boss wins")
-    #             break
-
-    # def turn(self, player_: Player, boss_: Player):
-    #     mana = []
-    #     scenarii = []
+        # Hard rules
+        if (game_.player_turn and game_.hard_rules):
+            game_.player_hp -= 1
+            if (game_.player_hp <= 0):
+                return -1
         
-    #     # Effect
-    #     player_.effect(boss_)
-    #     if not boss_.alive():
-    #         mana.append(player_.cost)
-    #         return [scenarii, mana]
+        # Effect
+        game_ = applyEffect(game_)
+        if (game_.boss_hp <= 0):
+            self.cost = min(self.cost, game_.player_cost)
+            return game_.player_cost
         
-    #     # Select spell
-    #     spell = []
-    #     for s in Spells.keys():
-    #         if player_.canCast(s):
-    #             spell.append(s)
-        
-    #     if (len(spell) == 0):
-    #         return [scenarii, mana]
-        
-    #     # Attack
-    #     for s in spell:
-    #         player = copy.copy(player_) 
-    #         boss = copy.copy(boss_)
-            
-    #         player.attack(boss, s)
-            
-    #         if not boss.alive():
-    #             mana.append(player.cost)
-    #             continue
-            
-    #         player.effect(boss)
-            
-    #         if not boss.alive():
-    #             mana.append(player.cost)
-    #             continue
-            
-    #         boss.attack(player)
-            
-    #         if not player.alive():
-    #             return [scenarii, mana]
-            
-    #         scenarii.append((player,boss))
-            
-    #     return [scenarii, mana]
-            
+        # Attack
+        if game_.player_turn:    
+            # Players
+            options = []
+    
+            if isCastValid(game_, MAGIC_MISSILE):
+                options.append(self.fightRound(magicMissile(copy.copy(game_))))
+            if isCastValid(game_, DRAIN):
+                options.append(self.fightRound(drain(copy.copy(game_))))
+            if isCastValid(game_, SHIELD):
+                options.append(self.fightRound(shield(copy.copy(game_))))
+            if isCastValid(game_, POISON):
+                options.append(self.fightRound(poison(copy.copy(game_))))
+            if isCastValid(game_, RECHARGE):
+                options.append(self.fightRound(recharge(copy.copy(game_))))
+    
+            if (len(options) == 0):
+                return -1
+            elif all(x == -1 for x in options):
+                return -1
+            else:
+                results = [x for x in options if x > 0]
+                return min(results)
+        else:
+            return self.fightRound(bossAttack(game_))
 
     def run(self):
-        #self.test()
+        # Part 1
+        self.cost = 1E9
+        game = Game(58, 9, 50, 0, 500, 0, 0, 0, 0, False, False)
+        self.result1 = self.fightRound(game)
         
-        # text = re.sub("[ a-zA-z:]", "", readFile(self.filename))
-        # tokens = text.split('\n')
+        # Part 2
+        self.cost = 1E9
+        game = Game(58, 9, 50, 0, 500, 0, 0, 0, 0, False, True)
+        self.result2 = self.fightRound(game)
         
-        # boss = Player(False, int(tokens[0]), int(tokens[1]), 0, 0)
-        # player = Player(True, 50, 0, 0, 500)
-        
-        # scenarii = [(player,boss)]
-        # wMana = []
-
-        # while (len(scenarii) != 0):
-        #     ns = []
-        #     for scenario in scenarii:
-        #         [sc, mana] = self.turn(scenario[0], scenario[1])
-        #         ns += sc
-        #         wMana += mana
-                
-        #     scenarii.clear()
-        #     scenarii = copy.copy(ns)
-        
-        # self.result1 = min(wMana)
-            
-            
-        
-
         return            
