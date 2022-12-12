@@ -62,10 +62,10 @@ class Puzzle12:
         for x,y in product(range(np.size(plan,0)), range(np.size(plan,1))):
             if (lines_[x][y] == 'S'):
                 start = (x,y)
-                plan[x,y] = -1
+                plan[x,y] = 0
             elif (lines_[x][y] == 'E'):
                 end = (x,y)
-                plan[x,y] = 26
+                plan[x,y] = 25
             else:
                 plan[x,y] = ord(lines_[x][y]) - ord('a')
             
