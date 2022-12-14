@@ -1,14 +1,28 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from typing import List
 from itertools import permutations
 
 ############################################################
-# Class Puzzle9
+# CONFIGURATION
 ############################################################
-class Puzzle9:
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["09.txt", "09.ex"]
+
+############################################################
+# METHODS
+############################################################
+
+############################################################
+# CLASS PUZZLE
+############################################################
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -43,4 +57,11 @@ class Puzzle9:
             self.result1 = min(self.result1, distance)
             self.result2 = max(self.result2, distance)
             
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))          

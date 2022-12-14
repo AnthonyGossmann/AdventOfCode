@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from typing import Dict
@@ -7,7 +7,17 @@ from typing import List
 from itertools import permutations
 
 ############################################################
-# Static Methods
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["13.txt", "13.ex"]
+
+############################################################
+# METHODS
 ############################################################
 def computeHappiness(data_: Dict[str,Dict[str, int]], path_: List[int]):
     happiness = 0
@@ -17,9 +27,9 @@ def computeHappiness(data_: Dict[str,Dict[str, int]], path_: List[int]):
     return happiness
 
 ############################################################
-# Class Puzzle13
+# CLASS PUZZLE
 ############################################################
-class Puzzle13:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -63,4 +73,11 @@ class Puzzle13:
             h = computeHappiness(data, path)
             self.result2 = max(self.result2, h)
         
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))           

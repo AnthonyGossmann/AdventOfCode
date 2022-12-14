@@ -1,10 +1,20 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 
 ############################################################
-# Static Methods
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["12.txt", "12.ex"]
+
+############################################################
+# METHODS
 ############################################################
 def findNextClosingBrace(text_: str, pos_: int) -> int:
     found = 1
@@ -18,9 +28,9 @@ def findNextClosingBrace(text_: str, pos_: int) -> int:
     return -1
 
 ############################################################
-# Class Puzzle12
+# CLASS PUZZLE
 ############################################################
-class Puzzle12:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -64,4 +74,11 @@ class Puzzle12:
         tokens =  apply(int, re.findall("-?\d+", text))   
         self.result2 = sum(tokens)
         
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))             

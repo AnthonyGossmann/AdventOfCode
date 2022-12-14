@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from itertools import chain, combinations, product
@@ -12,7 +12,17 @@ from dataclasses import dataclass
 import re
 
 ############################################################
-# Class Game
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["22.txt", "22.ex"]
+
+############################################################
+# CLASS GA%E
 ############################################################
 Game = typing.NewType("Game", None)
 @dataclass
@@ -30,7 +40,7 @@ class Game:
     hard_rules: bool
 
 ############################################################
-# Spells
+# METHOODS
 ############################################################
 MAGIC_MISSILE = 53
 def magicMissile(game_: Game) -> Game:
@@ -84,10 +94,6 @@ def isCastValid(game_: Game, cast_: int) -> bool:
     
     return True
 
-
-############################################################
-# Attack/Effect
-############################################################
 def applyEffect(game_: Game) -> Game:
     # Shield
     if (game_.timer_shield > 0):
@@ -108,16 +114,11 @@ def applyEffect(game_: Game) -> Game:
 def bossAttack(game_: Game) -> Game:
     game_.player_hp -= max(game_.boss_dmg - game_.player_arm, 1)
     return game_
-
-############################################################
-# Round
-############################################################
-
     
 ############################################################
-# Class Puzzle22
+# CLASS PUZZLE
 ############################################################
-class Puzzle22:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -197,4 +198,11 @@ class Puzzle22:
         game = Game(58, 9, 50, 0, 500, 0, 0, 0, 0, False, True)
         self.result2 = self.fightRound(game)
         
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))              

@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import typing
@@ -9,7 +9,21 @@ from dataclasses import dataclass
 import numpy as np
 
 ############################################################
-# Class Reindeer
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["14.txt", "14.ex"]
+
+############################################################
+# METHODS
+############################################################
+
+############################################################
+# CLASS REINDEER
 ############################################################
 Reindeer = typing.NewType("Reindeer ", None)
 @dataclass()
@@ -38,9 +52,9 @@ class Reindeer:
         return distance
 
 ############################################################
-# Class Puzzle14
+# CLASS PUZZLE
 ############################################################
-class Puzzle14:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -79,4 +93,11 @@ class Puzzle14:
                     points[reindeer] += 1
         self.result2 = max(points.values())
         
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))             

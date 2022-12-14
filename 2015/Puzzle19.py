@@ -1,12 +1,26 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 
 ############################################################
-# Class Puzzle19
+# CONFIGURATION
 ############################################################
-class Puzzle19:
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["19.txt", "19.ex"]
+
+############################################################
+# METHODS
+############################################################
+
+############################################################
+# CLASS PUZZLE
+############################################################
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -25,24 +39,24 @@ class Puzzle19:
     def run(self):
         lines = readLines(self.filename)
         
-        instructions = []
+        cmds = []
         molecule = ""
         for line in lines:
             if(len(line) == 0):
                 continue
             if ("=>" in line):
                 found = re.fullmatch("(.+) => (.+)", line)
-                instructions.append([found.group(1), found.group(2)])
+                cmds.append([found.group(1), found.group(2)])
             else:
                 molecule = line
                 
         # Part 1
         molecules = []
-        for ins in instructions:
-            indexes_object = re.finditer(ins[0], molecule)
+        for cmd in cmds:
+            indexes_object = re.finditer(cmd[0], molecule)
             indexes = [index.start() for index in indexes_object]
             for index in indexes:
-                s = molecule[:index] + ins[1] + molecule[index + len(ins[0]):]
+                s = molecule[:index] + cmd[1] + molecule[index + len(cmd[0]):]
                 if s not in molecules:
                     molecules.append(s)
 
@@ -51,8 +65,15 @@ class Puzzle19:
         # Part 2
         target = molecule 
         while (target != "e"):
-            for ins in instructions:
-                self.result2 += target.count(ins[1])
-                target = target.replace(ins[1], ins[0])
+            for cmd in cmds:
+                self.result2 += target.count(cmd[1])
+                target = target.replace(cmd[1], cmd[0])
                 
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))            

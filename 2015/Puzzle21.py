@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from itertools import chain, combinations, product
@@ -11,15 +11,26 @@ from dataclasses import dataclass
 import re
 
 ############################################################
-# Definitions
+# CONFIGURATION
 ############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["21.txt", "21.ex"]
+
 Weapons = { (8,4), (10,5), (25,6), (40,7), (74,8) }
 Armors = { (13,1), (31,2), (53,3), (75,4), (102,5) }
 AttackRings = { (25,1), (50,2), (100,3) }
 DefenceRings = { (20,1), (40,2), (80,3) }
 
 ############################################################
-# Class Player
+# METHODS
+############################################################
+
+############################################################
+# CLASS PLAYER
 ############################################################
 Player = typing.NewType("Player", None)
 @dataclass()
@@ -46,9 +57,9 @@ class Player:
         return (self.currentHealth <= 0)
 
 ############################################################
-# Class Puzzle21
+# CLASS PUZZLE
 ############################################################
-class Puzzle21:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -143,4 +154,11 @@ class Puzzle21:
                 
         self.result2 = max(costs)
        
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))            

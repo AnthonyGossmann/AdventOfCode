@@ -1,29 +1,39 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import re
 
 ############################################################
-# Static Methods
+# CONFIGURATION
 ############################################################
-def checkP2Cnd1(word: str) -> bool:
-    for i in range(len(word) - 3):
-        for j in range(i+2, len(word) - 1):
-            if ((word[i] == word[j]) and (word[i+1] == word[j+1])):
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["05.txt", "05.ex"]
+
+############################################################
+# METHODS
+############################################################
+def checkP2Cnd1(word_: str) -> bool:
+    for i in range(len(word_) - 3):
+        for j in range(i+2, len(word_) - 1):
+            if ((word_[i] == word_[j]) and (word_[i+1] == word_[j+1])):
                 return True
     return False
 
-def checkP2Cnd2(word: str) -> bool:
-    for i in range(len(word) - 2):
-        if (word[i] == word[i+2]):
+def checkP2Cnd2(word_: str) -> bool:
+    for i in range(len(word_) - 2):
+        if (word_[i] == word_[i+2]):
             return True
     return False
 
 ############################################################
-# Class Puzzle5
+# CLASS PUZZLE
 ############################################################
-class Puzzle5:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -50,4 +60,11 @@ class Puzzle5:
             self.result1 += int(b1 and b2 and b3)
             self.result2 += int(checkP2Cnd1(word) and checkP2Cnd2(word))
     
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))              

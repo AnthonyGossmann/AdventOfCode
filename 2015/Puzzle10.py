@@ -1,11 +1,21 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from itertools import groupby
 
 ############################################################
-# Static Methods
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["10.txt", "10.ex"]
+
+############################################################
+# METHODS
 ############################################################
 def compute(text_: str) -> str:
     result = ""
@@ -15,9 +25,9 @@ def compute(text_: str) -> str:
     return result
 
 ############################################################
-# Class Puzzle10
+# CLASS PUZZLE
 ############################################################
-class Puzzle10:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -48,4 +58,11 @@ class Puzzle10:
             data = compute(data)
         self.result2 = len(data)
             
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))          

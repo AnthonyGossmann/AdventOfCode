@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from itertools import product
@@ -10,7 +10,21 @@ from dataclasses import dataclass
 import re
 
 ############################################################
-# Class Component
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["15.txt", "15.ex"]
+
+############################################################
+# METHODS
+############################################################
+
+############################################################
+# CLASS COMPONENT
 ############################################################
 Component = typing.NewType("Component ", None)
 @dataclass()
@@ -34,9 +48,9 @@ class Component:
         return [self.capacity, self.durability, self.flavor, self.texture, self.calories]
 
 ############################################################
-# Class Puzzle15
+# CLASS PUZZLE
 ############################################################
-class Puzzle15:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -80,4 +94,11 @@ class Puzzle15:
             if (properties[4] == 500):
                 self.result2 = max(self.result2, score)
 
-        return
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))  

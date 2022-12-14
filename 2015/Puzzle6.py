@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import numpy as np
@@ -11,7 +11,17 @@ from typing import NewType
 from dataclasses import dataclass
 
 ############################################################
-# Class Action
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["06.txt", "06.ex"]
+
+############################################################
+# CLASS ACTION
 ############################################################
 class Action(Enum):
     TURN_OFF = 1
@@ -21,11 +31,11 @@ class Action(Enum):
 Action = Enum('Action', ['TURN_OFF', 'TURN_ON', 'TOGGLE'])
 
 ############################################################
-# Class Instruction
+# CLASS COMMAND
 ############################################################
-Instruction = typing.NewType("Instruction", None)
+Command = typing.NewType("Command", None)
 @dataclass()
-class Instruction:
+class Command:
     action = Action
     x1: int
     y1: int
@@ -39,32 +49,32 @@ class Instruction:
         self.x2 = x2_
         self.y2 = y2_
         
-    def apply(self, lights_: np.int, ancient_: bool = False):
+    def apply(self, lights_: np.array, elvish_: bool = False):
         for x,y in product(range(self.x1, self.x2 + 1), range(self.y1, self.y2 + 1)):
             if (self.action == Action.TURN_OFF):
-                if ancient_:
+                if elvish_:
                     lights_[x][y] = max(0, lights_[x][y] - 1)
                 else:
                     lights_[x][y] = 0
             elif (self.action == Action.TURN_ON):
-                if ancient_:
+                if elvish_:
                     lights_[x][y] += 1
                 else:
                     lights_[x][y] = 1
             else:
-                if ancient_:
+                if elvish_:
                     lights_[x][y] += 2
                 else:
                     lights_[x][y] = not lights_[x][y]
 
 ############################################################
-# Class Puzzle6
+# CLASS PUZZLE
 ############################################################
-class Puzzle6:
+class Puzzle:
     filename: str
     result1: int
     result2: int
-    lights: np.int
+    lights: np.array
     
     def __init__(self, filename_: str):
         self.filename = filename_
@@ -81,26 +91,33 @@ class Puzzle6:
     def run(self):
         text = readFile(self.filename).replace("turn on", "turn_on").replace("turn off", "turn_off")
         
-        instructions = []
+        cmds = []
         for line in re.split("\n", text):
             found = re.fullmatch("(.+) (.+),(.+) through (.+),(.+)", line)
             if (found.group(1) == "turn_off"):
-                ins = Instruction(Action.TURN_OFF, int(found.group(2)), int(found.group(3)), int(found.group(4)), int(found.group(5)))          
+                cmd = Command(Action.TURN_OFF, int(found.group(2)), int(found.group(3)), int(found.group(4)), int(found.group(5)))          
             elif (found.group(1) == "turn_on"):
-                ins = Instruction(Action.TURN_ON, int(found.group(2)), int(found.group(3)), int(found.group(4)), int(found.group(5)))
+                cmd = Command(Action.TURN_ON, int(found.group(2)), int(found.group(3)), int(found.group(4)), int(found.group(5)))
             else:
-                ins = Instruction(Action.TOGGLE, int(found.group(2)), int(found.group(3)), int(found.group(4)), int(found.group(5)))
-            instructions.append(ins)
+                cmd = Command(Action.TOGGLE, int(found.group(2)), int(found.group(3)), int(found.group(4)), int(found.group(5)))
+            cmds.append(cmd)
             
         # Part 1
-        for ins in instructions:
-            ins.apply(self.lights)        
+        for cmd in cmds:
+            cmd.apply(self.lights)        
         self.result1 = int(self.lights.sum())
         
         # Part 2
         self.lights = np.zeros((1000, 1000))
-        for ins in instructions:
-            ins.apply(self.lights, True)           
+        for cmd in cmds:
+            cmd.apply(self.lights, True)           
         self.result2 = int(self.lights.sum())
     
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))           

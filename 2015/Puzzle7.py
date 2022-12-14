@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import typing
@@ -11,7 +11,17 @@ from dataclasses import dataclass
 import re
 
 ############################################################
-# Definitions
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["07.txt", "07.ex"]
+
+############################################################
+# CLASS ACTION
 ############################################################
 class Action(Enum):
     ASSIGN = 0,
@@ -25,7 +35,7 @@ class Action(Enum):
 Action = Enum("Action", ["ASSIGN", "AND1", "AND", "OR", "LSHIFT", "RSHIFT", "NOT"])
 
 ############################################################
-# Static Methods
+# METHODS
 ############################################################
 def getAction(tokens_: List[str]) -> Action:
     if (("1" in tokens_) and ("AND" in tokens_)):
@@ -43,7 +53,7 @@ def getAction(tokens_: List[str]) -> Action:
     return Action.ASSIGN
 
 ############################################################
-# Class Wire
+# CLASS WIRE
 ############################################################
 Wire = typing.NewType("Wire", None)
 @dataclass()
@@ -120,9 +130,9 @@ class Wire:
         self.updated = True
             
 ############################################################
-# Class Puzzle7
+# CLASS PUZZLE
 ############################################################
-class Puzzle7:
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -168,4 +178,11 @@ class Puzzle7:
         self.wires["a"].update()
         self.result2 = self.wires["a"].value
         
-        return            
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))            
