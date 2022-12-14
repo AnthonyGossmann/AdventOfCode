@@ -1,31 +1,51 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import typing
 from typing import Dict
+from typing import List
 from dataclasses import dataclass
 
+############################################################
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["07.txt", "07.ex"]
+
+############################################################
+# CLASS ITEM
+############################################################
 Item = typing.NewType("Item", None)
-    
-############################################################
-# Class Item
-############################################################
 @dataclass()
 class Item:
     parent: Item
     children: Dict[str, Item]
     size: int
     isDir: bool
+    
+############################################################
+# METHODS
+############################################################
         
 ############################################################
-# Class Puzzle7
+# CLASS PUZZLE
 ############################################################
-class Puzzle7:
+class Puzzle:
+    filename: str
+    result1: int
+    reuslt2: int
+    root: Item
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 1E9
+        self.root = Item(None, {}, 0, True)
     
     def getResult1(self) -> int:
         return self.result1
@@ -33,17 +53,17 @@ class Puzzle7:
     def getResult2(self) -> int:
         return self.result2
     
-    def loadItems(self, lines_: List[str]) -> Item:
-        root = Item(None, {}, 0, True)
+    def loadItems(self):
+        lines = readLines(self.filename)
         
-        current = root
-        for line in lines_:
+        current = self.root
+        for line in lines:
             if line.startswith("$ cd"):
                 name = line.replace("$ cd ", "")
                 if (name == "/"):
-                    current = root
+                    current = self.root
                 elif (name == ".."):
-                    if (current != root):
+                    if (current != self.root):
                         current = current.parent
                 else:
                     current = current.children[name]
@@ -62,33 +82,36 @@ class Puzzle7:
                     if (it.parent == None):
                         break
                     it = it.parent
-                    
-        return root
 
-    def getDirs(self, root_: Item) -> List[Item]:
+    def getDirs(self, src_: Item) -> List:
         items = []
-        for item in root_.children.values():
-            if item.isDir:
+        for item in src_.children.values():
+            if (item.isDir and (item != self.root)):
                 items.append(item)
                 items += self.getDirs(item)
         return items
-                
-                
+                  
     def run(self):
-        lines = readLines(self.filename)
-        root = self.loadItems(lines)
+        self.loadItems()
+        items = self.getDirs(self.root)
             
         # Part 1
-        items = self.getDirs(root)
         for item in items:
-            if ((item != root) and (item.size <= 100000)):
+            if (item.size <= 100000):
                 self.result1 += item.size
 
         # Part 2
-        target = 30000000 - (70000000 - root.size)
+        target = 30000000 - (70000000 - self.root.size)
         for item in items:
-            if ((item != root) and (item.size >= target)):
+            if (item.size >= target):
                 if (item.size < self.result2):
                     self.result2 = item.size    
-    
-        return            
+                    
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))

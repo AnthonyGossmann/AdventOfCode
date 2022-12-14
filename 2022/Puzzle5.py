@@ -1,41 +1,42 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import typing
 from typing import Dict
 from typing import List
-from typing import NewType
-from dataclasses import dataclass
 import re
 
 ############################################################
-# Class Command
+# CONFIGURATION
 ############################################################
-Command = typing.NewType("Command", None)
-@dataclass()
-class Command:
-    size: int
-    start: int
-    end: int
+TEST = 0
 
 ############################################################
-# Class Stack
+# DEFINITIONS
 ############################################################
-Stack = typing.NewType("Stack", None)
-@dataclass()
-class Stack:
-    name: int
-    crates: List[str]
+INPUT_FILES = ["05.txt", "05.ex"]
 
 ############################################################
-# Class Puzzle5
+# METHODS
 ############################################################
-class Puzzle5:
+
+############################################################
+# CLASS PUZZLE
+############################################################
+class Puzzle:
+    filename: str
+    result1: str
+    reuslt2: str
+    stacks: Dict[int,List[str]]
+    commands: List[List[int]]
+    
     def __init__(self, filename_: str):
-        self.filename: str = filename_
-        self.result1: str = ""
-        self.result2: str = ""
+        self.filename = filename_
+        self.result1 = ""
+        self.result2 = ""
+        self.stacks = {}
+        self.commands = []
     
     def getResult1(self) -> str:
         return self.result1
@@ -43,12 +44,13 @@ class Puzzle5:
     def getResult2(self) -> str:
         return self.result2
     
-    def loadStacks(self) -> [Dict[int,Stack], List[Command]]:
+    def loadStacks(self):
         text = readFile(self.filename)
         lines = text.split("\n")
         
-        stacks = dict()
-        commands = list()
+        self.stacks = {}
+        self.commands = []
+        
         for line in lines:
             if ('[' in line):
                 # Load Stacks
@@ -60,51 +62,49 @@ class Puzzle5:
                     crates += re.split(" ", token)
                 
                 for i in range(len(crates)):
-                    if (i+1) not in stacks.keys():
-                        stacks[i+1] = Stack(i+1, [])
+                    if (i+1) not in self.stacks.keys():
+                        self.stacks[i+1] = []
                     if (crates[i] != ''):
-                        stacks[i+1].crates.insert(0, crates[i])
+                        self.stacks[i+1].insert(0, crates[i])
                         
             elif ("move" in line):
-                 found =  re.fullmatch("move (.+) from (.+) to (.+)", line)
-                 commands.append(Command(int(found.group(1)), int(found.group(2)), int(found.group(3))))
-
-        return [stacks, commands]
+                # Load commands
+                found =  re.fullmatch("move (.+) from (.+) to (.+)", line)
+                self.commands.append([int(found.group(2)), int(found.group(3)), int(found.group(1))])
     
-    def move(self, stacks_: Dict[int,Stack], command_: Command, crateMover9001_: bool = False):
-        if crateMover9001_:
-                items = stacks_[command_.start].crates[-command_.size:]
-                stacks_[command_.start].crates = stacks_[command_.start].crates[:-command_.size]
-                stacks_[command_.end].crates += items
-        else:
-            for i in range(command_.size):
-                item = stacks_[command_.start].crates[-1]
-                stacks_[command_.start].crates = stacks_[command_.start].crates[:-1]
-                stacks_[command_.end].crates.append(item)
-            
-        return stacks_
-    
-    def getTop(self, stacks_: Dict[int, Stack]) -> str:
+    def move(self, crateMover9001_: bool = False) -> str:
+        for cmd in self.commands:     
+            if crateMover9001_:
+                    items = self.stacks[cmd[0]][-cmd[2]:]
+                    self.stacks[cmd[0]] = self.stacks[cmd[0]][:-cmd[2]]
+                    self.stacks[cmd[1]] += items
+            else:
+                for i in range(cmd[2]):
+                    item = self.stacks[cmd[0]][-1]
+                    self.stacks[cmd[0]] = self.stacks[cmd[0]][:-1]
+                    self.stacks[cmd[1]].append(item)
+                    
         result = ""
-        for stack in stacks_.values():
-            if (len(stack.crates) != 0):
-                result += stack.crates[-1]
+        for stack in self.stacks.values():
+            if (len(stack) != 0):
+                result += stack[-1]
+                
         return result
 
     def run(self):
-        text = readFile(self.filename)
-        lines = text.split("\n")
-        
         # Part 1
-        [stacks, commands] = self.loadStacks()
-        for cmd in commands:
-            stacks = self.move(stacks, cmd)
-        self.result1 = self.getTop(stacks)
+        self.loadStacks()
+        self.result1 = self.move()
         
         # Part 2
-        [stacks, commands] = self.loadStacks()
-        for cmd in commands:
-            stacks = self.move(stacks, cmd, True)
-        self.result2 = self.getTop(stacks)
-        
-        return            
+        self.loadStacks()
+        self.result2 = self.move(True)
+
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))

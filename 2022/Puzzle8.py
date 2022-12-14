@@ -1,14 +1,24 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 import numpy as np
 from itertools import product
 
 ############################################################
-# Static Methods
+# CONFIGURATION
 ############################################################
-def isVisible(trees_, x_: int, y_: int) -> bool:
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["08.txt", "08.ex"]
+
+############################################################
+# METHODS
+############################################################
+def isVisible(trees_: np.array, x_: int, y_: int) -> bool:
     if ((x_ == 0) or (x_ == len(trees_)-1) or (y_ == 0) or (y_ == len(trees_[0])-1)):
         return True
     
@@ -23,7 +33,7 @@ def isVisible(trees_, x_: int, y_: int) -> bool:
 
     return (b1 or b2 or b3 or b4)
 
-def distance(trees_, x_: int, y_: int) -> int:
+def distance(trees_: np.array, x_: int, y_: int) -> int:
     if ((x_ == 0) or (x_ == len(trees_)-1) or (y_ == 0) or (y_ == len(trees_[0])-1)):
         return 0
     
@@ -58,13 +68,17 @@ def distance(trees_, x_: int, y_: int) -> int:
     return s1 * s2 * s3 * s4
 
 ############################################################
-# Class Puzzle8
+# CLASS PUZZLE
 ############################################################
-class Puzzle8:
-    def __init__(self, filename_):
-        self.filename:str = filename_
-        self.result1: int = 0
-        self.result2: int = 0
+class Puzzle:
+    filename: str
+    result1: int
+    reuslt2: int
+    
+    def __init__(self, filename_: str):
+        self.filename = filename_
+        self.result1 = 0
+        self.result2 = 0
     
     def getResult1(self) -> int:
         return self.result1
@@ -77,10 +91,9 @@ class Puzzle8:
         length = len(lines)
         width = len(lines[0])
         
-        trees = np.zeros((length, width))
-        trees.astype(int)
+        trees = np.zeros((length, width), dtype=int)
         for i,j in product(range(length), range(width)):
-           trees[i][j] = int(lines[i][j])
+            trees[i][j] = int(lines[i][j])
             
         # Part 1
         for i,j in product(range(length), range(width)):
@@ -91,5 +104,12 @@ class Puzzle8:
         for i,j in product(range(length), range(width)):
             score = distance(trees, i, j)
             self.result2 = max(self.result2, score)
-        
-        return            
+
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))

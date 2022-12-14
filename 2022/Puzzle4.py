@@ -1,12 +1,30 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 
 ############################################################
-# Class Puzzle4
+# CONFIGURATION
 ############################################################
-class Puzzle4:
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["04.txt", "04.ex"]
+
+############################################################
+# METHODS
+############################################################
+
+############################################################
+# CLASS PUZZLE
+############################################################
+class Puzzle:
+    filename: str
+    result1: int
+    reuslt2: int
+    
     def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
@@ -28,5 +46,12 @@ class Puzzle4:
 
             self.result1 += all(item in items1 for item in items2) + all(item in items2 for item in items1) - (items1 == items2)
             self.result2 += any(item in items1 for item in items2)
-    
-        return            
+
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))

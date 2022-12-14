@@ -1,95 +1,89 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
-import typing
-from typing import List
-from typing import NewType
-from dataclasses import dataclass
-import numpy as np
+import re
 
 ############################################################
-# Class Command
+# CONFIGURATION
 ############################################################
-Command = typing.NewType("Command", None)
-@dataclass()
-class Command:
-    cycle: int
-    value: int
-    
-    def __init__(self, cycle_: int, value_: int):
-        self.cycle = cycle_
-        self.value = value_
+TEST = 0
 
 ############################################################
-# Class Puzzle10
+# DEFINITIONS
 ############################################################
-class Puzzle10:
+INPUT_FILES = ["10.txt", "10a.ex", "10b.ex"]
+
+############################################################
+# METHODS
+############################################################
+def execute(cmds_: List, cycle_: int, x_: int) -> int:
+    for cmd in cmds_:
+        if (cmd[0] == cycle_):
+            x_ += cmd[1]
+    return x_
+
+############################################################
+# CLASS PUZZLE
+############################################################
+class Puzzle:
     filename: str
     result1: int
-    result2: int
-
-    def __init__(self, filename_):
+    result2: str
+    
+    def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
-        self.result2 = "\n"
-
-        self.x = 1
-        self.cycle = 0
-        self.commands = []
-
+        self.result2 = '\n'
+    
     def getResult1(self) -> int:
         return self.result1
 
     def getResult2(self) -> str:
         return self.result2
-
-    def command(self, commands_: List[Command], cycle_: int, x_: int) -> int:
-        for cmd in commands_:
-            if (cmd.cycle == cycle_):
-                x_ += cmd.value
-        return x_
-
-    def run(self):
+    
+    def loadCmds(self) -> List:
         lines = readLines(self.filename)
-        
-        # Load Commands
         cycle = 0
-        commands = []
+        cmds = []
+        
         for line in lines:
             if ("noop" in line):
                 cycle += 1
             elif ("addx" in line):
                 cycle += 2
                 value = int(re.split(" ", line)[-1])
-                commands.append(Command(cycle + 1, value)) 
+                cmds.append([cycle + 1, value])
                 
-        # Part 1
+        return cmds
+
+    def run(self):
+        cmds = self.loadCmds()
+        
         cycle = 0
         x = 1
-        for i in range(220):
+        width = 40
+        for i in range(240):
             cycle += 1
-            x = self.command(commands, cycle, x)
+            x = execute(cmds, cycle, x)
             
             if ((cycle % 40) == 20):
                 self.result1 += cycle * x
                 
-        # Part 2
-        cycle = 0
-        x = 1
-        width = 40
-
-        for i in range(240):
-            cycle += 1
-            x = self.command(commands, cycle, x)
-            
-            col = (cycle - 1) % width   
+            col = (cycle - 1) % width
             if (x in [col-1, col, col+1]):
                 self.result2 += '#'
             else:
                 self.result2 += '.'
-                
-            if (col == (width-1)):
+            
+            if (col == (width - 1)):
                 self.result2 += '\n'
-
-        return
+                 
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))
