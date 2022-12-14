@@ -1,19 +1,25 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
-from itertools import product
 import typing
-from typing import Dict
-from typing import List
 from typing import Tuple
 import numpy as np
-import re
 
 ############################################################
-# Class Puzzle14
+# CONFIGURATION
 ############################################################
-class Puzzle14:
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["14.txt", "14.ex"]
+
+############################################################
+# CLASS PUZZLE
+############################################################
+class Puzzle:
     filename: str
     result1: int
     result2: int
@@ -23,12 +29,10 @@ class Puzzle14:
     offset: int
     center: Tuple[int,int]
     
-    def __init__(self, filename_):
+    def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
-
-        self.grid = np.zeros((1,1), dtype=int)
         self.width = 0
         self.depth = 0
         self.offset = 0
@@ -40,7 +44,9 @@ class Puzzle14:
     def getResult2(self):
         return self.result2            
     
-    def loadGrid(self, lines: List[str], part2_: bool = False):
+    def loadGrid(self, part2_: bool = False):
+        lines = readLines(self.filename)
+        
         # Get grid size
         left = 500
         right = 500
@@ -128,15 +134,14 @@ class Puzzle14:
             
         if not ret:
             self.grid[cur] = 1
-            if (part2_ and (cur == self.center)):
+            if (part2_ and (self.grid[self.center] == 1)):
                 ret = True
 
         return ret
 
     def run(self):
         # Part 1
-        lines = readLines(self.filename)
-        self.loadGrid(lines)
+        self.loadGrid()
 
         ret = False
         while not ret:
@@ -145,8 +150,7 @@ class Puzzle14:
                 self.result1 += 1
     
         # Part 2
-        lines = readLines(self.filename)
-        self.loadGrid(lines, True)
+        self.loadGrid(True)
 
         ret = False
         while not ret:
@@ -154,5 +158,12 @@ class Puzzle14:
             if not ret:
                 self.result2 += 1
         self.result2 += 1
-
-        return            
+        
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))   

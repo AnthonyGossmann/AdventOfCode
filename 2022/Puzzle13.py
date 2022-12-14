@@ -1,5 +1,5 @@
 ############################################################
-# Import
+# IMPORT
 ############################################################
 from Utils import *
 from typing import List
@@ -8,7 +8,17 @@ import re
 import functools
 
 ############################################################
-# Methods
+# CONFIGURATION
+############################################################
+TEST = 0
+
+############################################################
+# DEFINITIONS
+############################################################
+INPUT_FILES = ["13.txt", "13.ex"]
+
+############################################################
+# METHIDS
 ############################################################
 def compare(l1_, l2_):
     for i in range(min(len(l1_), len(l2_))):
@@ -24,14 +34,14 @@ def compare(l1_, l2_):
     return (len(l1_) - len(l2_))
 
 ############################################################
-# Class Puzzle13
+# CLASS PUZZLE
 ############################################################
-class Puzzle13:
+class Puzzle:
     filename: str
     result1: int
     result2: int
     
-    def __init__(self, filename_):
+    def __init__(self, filename_: str):
         self.filename = filename_
         self.result1 = 0
         self.result2 = 0
@@ -58,6 +68,12 @@ class Puzzle13:
         
         sorted_lines = sorted(lines, key=functools.cmp_to_key(compare))
         self.result2 = (sorted_lines.index(eval("[[2]]")) + 1) * (sorted_lines.index(eval("[[6]]")) + 1)
-            
-        
-        return            
+
+############################################################
+# MAIN
+############################################################
+filename = "data/" + INPUT_FILES[TEST]
+p = Puzzle(filename)
+p.run()
+print("Result 1: " + str(p.getResult1()))
+print("Result 2: " + str(p.getResult2()))         
